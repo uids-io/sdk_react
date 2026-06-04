@@ -1,0 +1,67 @@
+{
+  "name": "@uids-io/auth-react",
+  "version": "0.1.0",
+  "description": "Browser/React OAuth client for @advcomm/uids-io-auth (PKCE, devices, refresh)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "format": "biome format --write src/ tests/",
+    "lint": "biome lint --write src/ tests/",
+    "check": "biome check --write src/ tests/",
+    "example:merchant": "npm run build && npm run dev --prefix examples/vite-merchant-portal"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react-dom": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.16",
+    "@testing-library/react": "^16.3.0",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitest/coverage-v8": "^4.1.8",
+    "jsdom": "^26.0.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.2",
+    "vitest": "^4.1.8"
+  },
+  "license": "MIT",
+  "keywords": [
+    "auth",
+    "oauth",
+    "pkce",
+    "react",
+    "oids",
+    "uids"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/advcomm/uids-auth-react"
+  }
+}
