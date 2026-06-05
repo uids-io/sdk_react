@@ -31,6 +31,19 @@ Open http://localhost:5173.
 
 Set `VITE_AUTH_ISSUER` to your auth base URL (include `/auth` if mounted there).
 
+## Local dev OAuth clients (auth repo seed)
+
+Seeded by `examples/express-auth-server` in `@advcomm/uids-io-auth`:
+
+| App | `client_id` | Dev URL | Default redirect URI |
+|-----|-------------|---------|------------------------|
+| Merchant | `merchant_portal_web` | http://localhost:5173 | http://localhost:5173/auth/callback |
+| Agency | `agency_portal_web` | http://localhost:5174 | http://localhost:5174/auth/callback |
+| Influencer | `influencer_portal_web` | http://localhost:5175 | http://localhost:5175/auth/callback |
+| Admin | `admin_portal_web` | http://localhost:5176 | http://localhost:5176/auth/callback |
+
+This example uses **`merchant_portal_web`** on port **5173** (see `.env.example`).
+
 ## Quick test flows
 
 1. **Sign in with Google** → lands on `/dashboard` with one `POST /token` in Network tab

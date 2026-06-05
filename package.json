@@ -24,7 +24,7 @@
     "format": "biome format --write src/ tests/",
     "lint": "biome lint --write src/ tests/",
     "check": "biome check --write src/ tests/",
-    "example:merchant": "npm run build && npm run dev --prefix examples/vite-merchant-portal"
+    "example:portal": "npm run build && npm run dev --prefix examples/vite-example-portal"
   },
   "engines": {
     "node": ">=20"
