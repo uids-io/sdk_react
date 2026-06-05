@@ -1,6 +1,6 @@
 # Login providers (Google, Microsoft, email)
 
-Portals do **not** integrate Google/Microsoft SDKs. The **auth server** hosts IdP flows; the React SDK discovers what is enabled and can start login for a specific provider.
+Client apps do **not** integrate Google/Microsoft SDKs. The **auth server** hosts IdP flows; the React SDK discovers what is enabled and can start login for a specific provider.
 
 ## Discovery endpoint
 
@@ -33,7 +33,7 @@ Example response:
 | `signIn()` | Default → auth server `/login` chooser |
 | `signIn({ provider: "google" })` | PKCE + redirect straight to Google (if enabled) |
 
-## Portal UI example
+## Sign-in UI example
 
 ```tsx
 function SignInPage() {
@@ -74,7 +74,7 @@ signIn({ provider: "google" })
   → auth server saves PKCE pending state
   → redirect to Google (on auth domain)
   → … user signs in …
-  → portal /auth/callback?code=...
+  → your app /auth/callback?code=...
   → handleCallback()
 ```
 

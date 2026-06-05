@@ -21,7 +21,7 @@ and **omits** `refresh_token` from the JSON body. The browser sends the cookie a
 ### Boot after page refresh
 
 1. Memory has no access token.
-2. `localStorage` flag `uids:refresh_session` (shared across portal tabs) indicates a cookie session may exist.
+2. `localStorage` flag `uids:refresh_session` (shared across app tabs) indicates a cookie session may exist.
 3. `initialize()` → ask other tabs for tokens via `BroadcastChannel`, else `POST /refresh` with cookie only → new access token in memory.
 
 ## Body delivery (`tokenDelivery: "body"`)
@@ -63,7 +63,7 @@ Tab A (wins lock)     Tab B
 
 ## CORS & cookies (production vs local dev)
 
-Refresh cookies are stored on the **auth issuer** (e.g. `https://auth.example.com`), not the portal origin.
+Refresh cookies are stored on the **auth issuer** (e.g. `https://auth.example.com`), not your app origin.
 
 - **Production** (`app.example.com` + `auth.example.com`): same registrable domain → `SameSite=Lax` cookies usually sent on `fetch(..., { credentials: "include" })`.
 - **Local dev** (`localhost:5173` → `localhost:3000`): different **sites** (different ports) → cookies may **not** be sent. Use either:

@@ -4,7 +4,7 @@ Browser/React OAuth client for [`@advcomm/uids-io-auth`](https://github.com/advc
 
 **Minimum server version:** `@advcomm/uids-io-auth` `>=0.1.0`
 
-**Example app:** [`examples/vite-merchant-portal`](./examples/vite-merchant-portal)
+**Example app:** [`examples/vite-example-portal`](./examples/vite-example-portal)
 
 **Code documentation:**
 
@@ -21,17 +21,17 @@ Browser/React OAuth client for [`@advcomm/uids-io-auth`](https://github.com/advc
 | Component | Role |
 |-----------|------|
 | **Auth server** (`issuer`) | Runs `@advcomm/uids-io-auth` — login UI, `/authorize`, `/token`, `/refresh`, `/logout`, devices |
-| **This SDK** | Your React portal — PKCE redirect, tokens, hooks, API `fetch` helper |
+| **This SDK** | Your React app — PKCE redirect, tokens, hooks, API `fetch` helper |
 | **API server** (`apiAudience`) | Your backend — validates Bearer tokens via `requireAuth` |
 
 ```mermaid
 flowchart LR
-  Portal[React portal] -->|PKCE OAuth| Auth[Auth server issuer]
-  Portal -->|Bearer access_token| API[API server]
+  App[React app] -->|PKCE OAuth| Auth[Auth server issuer]
+  App -->|Bearer access_token| API[API server]
   Auth -->|JWT signed with issuer| API
 ```
 
-Each portal build has **one** `clientId` + **one** `redirectUri`. All portals share the same `issuer` (and usually the same `apiAudience`).
+Each app build has **one** `clientId` + **one** `redirectUri`. All apps share the same `issuer` (and usually the same `apiAudience`).
 
 ---
 
@@ -47,17 +47,17 @@ npm install @uids-io/auth-react
 
 ## Integration checklist
 
-Use this when wiring a new portal (merchant, agency, admin, etc.):
+Use this when wiring a new React app:
 
-1. **Register OAuth client** on the auth server (`OAuthClientService.upsertPublicClient`) with this portal’s `redirect_uri` and allowed origin.
+1. **Register OAuth client** on the auth server (`OAuthClientService.upsertPublicClient`) with this app’s `redirect_uri` and allowed origin.
 2. **Env vars** — `VITE_AUTH_ISSUER`, `VITE_AUTH_CLIENT_ID`, `VITE_AUTH_REDIRECT_URI` (names may differ for CRA/Next).
 3. **Callback route** — e.g. `/auth/callback` uses `useAuthCallback()` (strips `?code`, exchanges once).
 4. **Root** — wrap the app in `<AuthProvider config={...}>`.
 5. **Login page** — call `loadProviders()` before rendering provider sign-in buttons.
 6. **API client** — Bearer from `getAccessToken()`; on 401 refresh once, else `signIn()` (`createAuthFetch`).
-7. **Logout** — `signOut()` with cookie or body refresh token (auth server skips CSRF when `uids_refresh_token` cookie is present).
-8. **CORS** — auth server allows portal `Origin`; API server must allow portal origin in production (or use a BFF/proxy).
-9. **Smoke test** — login → protected page → API call → wait/refresh → logout.
+7. **Logout** — `signOut()` with cookie or body refresh token.
+8. **CORS** — auth server allows your app’s `Origin`; API server must allow the app origin in production (or use a BFF/proxy).
+
 
 ---
 
@@ -70,13 +70,13 @@ Use this when wiring a new portal (merchant, agency, admin, etc.):
 # Examples: http://localhost:3000  or  http://localhost:3000/auth
 VITE_AUTH_ISSUER=http://localhost:3000
 
-# Unique per portal (must match DB seed / upsertPublicClient)
-VITE_AUTH_CLIENT_ID=merchant_portal_web
+# Unique per app (must match upsertPublicClient on the auth server)
+VITE_AUTH_CLIENT_ID=my_app_web
 
 # Must match an allowed redirect URI for that client
 VITE_AUTH_REDIRECT_URI=http://localhost:5173/auth/callback
 
-# Optional: your API base URL (portal → API, not auth)
+# Optional: your API base URL (app → API, not auth)
 VITE_API_URL=https://api.example.com
 ```
 
@@ -85,7 +85,7 @@ VITE_API_URL=https://api.example.com
 | Field | Required | Default | Description |
 |-------|----------|---------|-------------|
 | `issuer` | Yes | — | Auth server base URL (see below) |
-| `clientId` | Yes | — | OAuth public client id for **this** portal only |
+| `clientId` | Yes | — | OAuth public client id for **this** app only |
 | `redirectUri` | Yes | — | Exact callback URL registered on the server |
 | `platform` | No | `"web"` | Sent on device register / authorize |
 | `appVersion` | No | — | Sent on device register |
@@ -113,18 +113,11 @@ export const authConfig: AuthReactConfig = {
 
 ---
 
-## Portal matrix (local dev)
+## OAuth client registration
 
-Seeded by `examples/express-auth-server` in the auth repo:
+Each React app build uses **one** `clientId` and **one** `redirectUri`, registered on the auth server via `OAuthClientService.upsertPublicClient`. To add another app, register a new public client and redirect URI; only env/config changes in that React project.
 
-| Portal | `client_id` | Dev app URL | Default redirect URI |
-|--------|-------------|-------------|----------------------|
-| Merchant | `merchant_portal_web` | http://localhost:5173 | http://localhost:5173/auth/callback |
-| Agency | `agency_portal_web` | http://localhost:5174 | http://localhost:5174/auth/callback |
-| Influencer | `influencer_portal_web` | http://localhost:5175 | http://localhost:5175/auth/callback |
-| Admin | `admin_portal_web` | http://localhost:5176 | http://localhost:5176/auth/callback |
-
-Adding a 6th portal: register a new public client + redirect URI on the auth server; only env/config changes in the React app.
+For seeded local-dev client IDs, ports, and the included Vite example, see [`examples/vite-example-portal/README.md`](./examples/vite-example-portal/README.md).
 
 ---
 
@@ -151,7 +144,7 @@ export function AppRoot({ children }: { children: React.ReactNode }) {
 | `/auth/callback` | Callback | Exchange `code` for tokens |
 | `/dashboard` | Protected | `useRequireAuth()` or manual guard |
 
-See [`examples/vite-merchant-portal/src/App.tsx`](./examples/vite-merchant-portal/src/App.tsx).
+See [`examples/vite-example-portal/src/App.tsx`](./examples/vite-example-portal/src/App.tsx).
 
 ### 3. Callback page
 
@@ -286,7 +279,7 @@ npm run build
 npx tsx examples/express-auth-server/index.ts
 ```
 
-Listens on **http://localhost:3000** by default. Seeds portal clients including `merchant_portal_web` → `http://localhost:5173/auth/callback`.
+Listens on **http://localhost:3000** by default. Seeds OAuth clients for local development (see the [example app README](./examples/vite-example-portal/README.md)).
 
 ### 2. API server (optional, for `/me` demo)
 
@@ -296,14 +289,14 @@ npx tsx examples/express-api-server/index.ts
 
 Listens on **http://localhost:4000**. All routes require Bearer tokens except you call `/me` with a valid access token.
 
-### 3. SDK + merchant example
+### 3. SDK + example app
 
 ```bash
 cd /path/to/sdk_react
 npm install
 npm run build
 
-cd examples/vite-merchant-portal
+cd examples/vite-example-portal
 cp .env.example .env
 npm install
 npm run dev
@@ -312,7 +305,7 @@ npm run dev
 Or from repo root:
 
 ```bash
-npm run example:merchant
+npm run example:portal
 ```
 
 Open http://localhost:5173 → **Sign in** → complete login on auth server → dashboard → **GET /api/me** (Vite proxies `/api` → `localhost:4000`).
@@ -336,7 +329,7 @@ Run these with React **Strict Mode enabled** (default in the example app) and th
 | 9 | **After logout** | Protected routes redirect to sign-in; `/me` returns 401 without manual token |
 | 10 | **Re-login** | Full OAuth flow works again after sign-out |
 
-**Cross-origin local dev (`localhost:5173` → `localhost:3000`):** cookie refresh may not persist across reload unless you proxy auth under the portal origin or use `VITE_AUTH_TOKEN_DELIVERY=body` in `.env`. See [TOKEN_STORAGE.md](./docs/TOKEN_STORAGE.md).
+**Cross-origin local dev (`localhost:5173` → `localhost:3000`):** cookie refresh may not persist across reload unless you proxy auth under the app origin or use `VITE_AUTH_TOKEN_DELIVERY=body` in `.env`. See [TOKEN_STORAGE.md](./docs/TOKEN_STORAGE.md).
 
 ---
 
@@ -434,7 +427,7 @@ npm run check    # biome
 | Phase | Status |
 |-------|--------|
 | Phase 1 — Core client + React hooks | Shipped in this repo |
-| Phase 2 — Multi-tab refresh leader, portal presets | Planned |
+| Phase 2 — Multi-tab refresh leader, app presets | Planned |
 | Phase 3 — `@uids-io/auth-react/next` | Planned |
 
 Details: [REACT_SDK_PLAN.md](../auth/docs/REACT_SDK_PLAN.md)

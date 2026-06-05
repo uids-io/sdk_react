@@ -27,7 +27,7 @@ export interface AuthProvidersResponse {
 /**
  * Portal-specific OAuth client configuration.
  *
- * Create one config object per React app build (merchant, agency, etc.).
+ * Create one config object per React app build.
  * Keep the object referentially stable when passed to `AuthProvider`.
  */
 export interface AuthReactConfig {
