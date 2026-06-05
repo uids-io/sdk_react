@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@uids-io/auth-react";
 
@@ -5,10 +6,16 @@ export function HomePage() {
 	const {
 		isAuthenticated,
 		isLoading,
+		isLoadingProviders,
 		signIn,
 		enabledProviders,
 		error,
+		loadProviders,
 	} = useAuth();
+
+	useEffect(() => {
+		void loadProviders();
+	}, [loadProviders]);
 
 	return (
 		<main style={{ fontFamily: "system-ui", margin: "2rem", maxWidth: 640 }}>
@@ -19,6 +26,7 @@ export function HomePage() {
 			</p>
 
 			{isLoading && <p>Loading session…</p>}
+			{isLoadingProviders && !isLoading && <p>Loading sign-in options…</p>}
 
 			{error && (
 				<p role="alert" style={{ color: "crimson" }}>
@@ -26,7 +34,7 @@ export function HomePage() {
 				</p>
 			)}
 
-			{!isLoading && !isAuthenticated && (
+			{!isLoading && !isLoadingProviders && !isAuthenticated && (
 				<div style={{ display: "grid", gap: "0.5rem", maxWidth: 280 }}>
 					{enabledProviders.includes("google") && (
 						<button type="button" onClick={() => void signIn({ provider: "google" })}>

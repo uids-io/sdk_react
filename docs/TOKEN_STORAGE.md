@@ -65,7 +65,9 @@ Refresh cookies are stored on the **auth issuer** (e.g. `https://auth.example.co
 ## Sign out
 
 - Clears memory + session flag.
-- `POST /logout` with `credentials: "include"` (cookie or body RT).
+- `POST /logout` with `credentials: "include"` (HttpOnly refresh cookie or body `refresh_token`).
+- Cross-origin SPAs cannot read `uids_csrf`; auth server skips CSRF on `/logout` when `uids_refresh_token` cookie is present (same as `/refresh`).
+- When auth is same-origin/proxied, SDK also sends `X-CSRF-Token` if `uids_csrf` is readable.
 - Server clears `uids_refresh_token` cookie.
 - Broadcast `session-cleared` so all tabs logout.
 

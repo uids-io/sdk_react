@@ -10,6 +10,7 @@ Browser/React OAuth client for [`@advcomm/uids-io-auth`](https://github.com/advc
 
 - **[Token storage & multi-tab security](./docs/TOKEN_STORAGE.md)** — cookie vs body, rotation, critical behavior
 - **[Login providers](./docs/LOGIN_PROVIDERS.md)** — Google / Microsoft / email discovery & `signIn({ provider })`
+- **[OAuth redirect plan](./docs/OAUTH_REDIRECT_PLAN.md)** — callback transaction, `useAuthCallback`, Strict Mode fix (implementation reference)
 - [Architecture & module map](./docs/ARCHITECTURE.md)
 - **IDE hovers** — JSDoc on `AuthClient`, `AuthReactConfig`, etc. (after `npm run build`)
 
@@ -50,11 +51,11 @@ Use this when wiring a new portal (merchant, agency, admin, etc.):
 
 1. **Register OAuth client** on the auth server (`OAuthClientService.upsertPublicClient`) with this portal’s `redirect_uri` and allowed origin.
 2. **Env vars** — `VITE_AUTH_ISSUER`, `VITE_AUTH_CLIENT_ID`, `VITE_AUTH_REDIRECT_URI` (names may differ for CRA/Next).
-3. **Callback route** — e.g. `/auth/callback` calls `client.handleCallback()`.
+3. **Callback route** — e.g. `/auth/callback` uses `useAuthCallback()` (strips `?code`, exchanges once).
 4. **Root** — wrap the app in `<AuthProvider config={...}>`.
-5. **Startup** — provider registers device by default (`registerOnMount`).
+5. **Login page** — call `loadProviders()` before rendering provider sign-in buttons.
 6. **API client** — Bearer from `getAccessToken()`; on 401 refresh once, else `signIn()` (`createAuthFetch`).
-7. **Logout** — `signOut()` (sends refresh token in body; no CSRF cookie needed for SPAs).
+7. **Logout** — `signOut()` with cookie or body refresh token (auth server skips CSRF when `uids_refresh_token` cookie is present).
 8. **CORS** — auth server allows portal `Origin`; API server must allow portal origin in production (or use a BFF/proxy).
 9. **Smoke test** — login → protected page → API call → wait/refresh → logout.
 
@@ -65,7 +66,8 @@ Use this when wiring a new portal (merchant, agency, admin, etc.):
 ### Environment variables (Vite)
 
 ```bash
-# Auth server — where @advcomm/uids-io-auth is mounted
+# Auth server base URL — include mount path if router is not at host root
+# Examples: http://localhost:3000  or  http://localhost:3000/auth
 VITE_AUTH_ISSUER=http://localhost:3000
 
 # Unique per portal (must match DB seed / upsertPublicClient)
@@ -94,7 +96,7 @@ VITE_API_URL=https://api.example.com
 | `apiAudience` | No | — | Client-side hint only; API server enforces audience |
 | `refreshSkewSeconds` | No | `60` | Refresh this many seconds before access token expiry |
 
-**`issuer`** is the public URL of the app that hosts `createAuthRouter` (e.g. `https://auth.example.com` or `http://localhost:3000`). It is **not** your business API URL unless you colocate auth and API on one host.
+**`issuer`** is the full public base URL of `createAuthRouter`, **including any mount path** (e.g. `https://auth.example.com` or `http://localhost:3000/auth`). It is **not** your business API URL unless you colocate auth and API on one host.
 
 Keep `config` referentially stable (e.g. `useMemo` or module-level constant) so `AuthProvider` does not recreate the client every render.
 
@@ -139,7 +141,7 @@ export function AppRoot({ children }: { children: React.ReactNode }) {
 }
 ```
 
-`AuthProvider` on mount: restores refresh scheduling, registers the device (unless `registerOnMount={false}`), and exposes session state via `useAuth()`.
+`AuthProvider` on mount: restores the session via `initialize()` (silent refresh when a cookie/body session exists). Device registration runs on first `signIn()`. Call `loadProviders()` from the login page (or set `loadProvidersOnMount`).
 
 ### 2. Routing (React Router example)
 
@@ -153,36 +155,30 @@ See [`examples/vite-merchant-portal/src/App.tsx`](./examples/vite-merchant-porta
 
 ### 3. Callback page
 
-After the auth server redirects back with `?code=...&state=...`:
+Use `useAuthCallback` — do not hand-roll `useEffect` + `handleCallback` (unsafe under React Strict Mode).
 
 ```tsx
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@uids-io/auth-react";
+import { useAuthCallback } from "@uids-io/auth-react";
 
 export function AuthCallbackPage() {
-  const { client } = useAuth();
   const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
+  const { isProcessing, error } = useAuthCallback({
+    onSuccess: () => navigate("/dashboard", { replace: true }),
+  });
 
-  useEffect(() => {
-    void client
-      .handleCallback(window.location.href)
-      .then(() => navigate("/dashboard", { replace: true }))
-      .catch((e) => setError(e instanceof Error ? e.message : "Sign-in failed"));
-  }, [client, navigate]);
-
-  if (error) return <p>{error}</p>;
-  return <p>Signing in…</p>;
+  if (error) return <p>{error.message}</p>;
+  return <p>{isProcessing ? "Signing in…" : "Redirecting…"}</p>;
 }
 ```
 
-`handleCallback`:
+`useAuthCallback`:
 
-- Validates `state` (if stored)
-- `POST /token` with PKCE verifier and `X-Uids-Device-Id`
-- Stores tokens (access + refresh) per `tokenStorage`
-- Clears PKCE verifier from `sessionStorage`
+- Strips `?code` / `?state` from the URL synchronously (before any `await`)
+- Claims the OAuth redirect transaction once → `POST /token` with PKCE verifier and `X-Uids-Device-Id`
+- Replays safely on Strict Mode remount (no second token exchange)
+
+Advanced: call `client.handleCallback(params)` directly only if you also use `clearOAuthRedirectFromUrl()` and understand the [redirect transaction](./docs/OAUTH_REDIRECT_PLAN.md).
 
 OAuth errors in the query string (`?error=...`) throw `OAuthError`.
 
@@ -197,7 +193,7 @@ await signIn();
 // Optional custom OAuth state
 await signIn({ state: "checkout" });
 
-// POST /logout with refresh_token; clears local tokens
+// POST /logout (HttpOnly refresh cookie or body refresh_token); clears local tokens
 await signOut();
 ```
 
@@ -263,11 +259,13 @@ const token = await client.getAccessToken();
 
 | Method | Path | SDK usage |
 |--------|------|-----------|
-| POST | `/devices/register` | On startup / before login |
+| GET | `/.well-known/openid-configuration` | Optional config bootstrap |
+| GET | `/.well-known/oauth-providers` | `loadProviders()` |
+| POST | `/devices/register` | On first `signIn()` |
 | GET | `/authorize` | `signIn()` redirect (PKCE + `device_id`) |
 | POST | `/token` | `handleCallback()` |
 | POST | `/refresh` | `refresh()` / scheduled refresh |
-| POST | `/logout` | `signOut()` with `{ refresh_token }` |
+| POST | `/logout` | `signOut()` (refresh cookie or `{ refresh_token }`) |
 | GET | `/devices` | `listDevices()` |
 | POST | `/devices/revoke` | `revokeDevice()` |
 
@@ -321,6 +319,27 @@ Open http://localhost:5173 → **Sign in** → complete login on auth server →
 
 ---
 
+## End-to-end test checklist
+
+Run these with React **Strict Mode enabled** (default in the example app) and the Network tab open.
+
+| # | Flow | Expected |
+|---|------|----------|
+| 1 | **Cold load (signed out)** | At most one `POST /refresh` if a prior cookie session exists; no duplicate `openid-configuration` |
+| 2 | **Login page** | One `GET /.well-known/oauth-providers` when `loadProviders()` runs |
+| 3 | **Google sign-in** | Redirect to `{issuer}/authorize?...`; callback hits `{issuer}/token` **once** (no `invalid_grant` reuse) |
+| 4 | **Callback URL** | `?code` stripped from address bar before exchange completes |
+| 5 | **Dashboard** | `useRequireAuth` does not loop; user claims visible from ID token |
+| 6 | **API call** | `GET /api/me` returns 200 with Bearer token |
+| 7 | **Page refresh (F5)** | Session restored via silent `POST /refresh`; still authenticated |
+| 8 | **Sign out** | `POST /logout` returns 200 (no `csrf_failed` with cookie delivery + updated auth server) |
+| 9 | **After logout** | Protected routes redirect to sign-in; `/me` returns 401 without manual token |
+| 10 | **Re-login** | Full OAuth flow works again after sign-out |
+
+**Cross-origin local dev (`localhost:5173` → `localhost:3000`):** cookie refresh may not persist across reload unless you proxy auth under the portal origin or use `VITE_AUTH_TOKEN_DELIVERY=body` in `.env`. See [TOKEN_STORAGE.md](./docs/TOKEN_STORAGE.md).
+
+---
+
 ## Security defaults
 
 | Topic | Behavior |
@@ -361,7 +380,7 @@ try {
 
 ## API reference
 
-Full JSDoc (parameters, throws, examples) is on the TypeScript types — open `src/auth-client.ts` or hover `createAuthClient` in your IDE after `npm run build`.
+Full JSDoc (parameters, throws, examples) is on the TypeScript types — open `src/auth-client/` or hover `createAuthClient` in your IDE after `npm run build`.
 
 ### `createAuthClient(config)` → `AuthClient`
 
@@ -377,16 +396,19 @@ Full JSDoc (parameters, throws, examples) is on the TypeScript types — open `s
 | `listDevices()` | Authenticated device list |
 | `revokeDevice(deviceId)` | Revoke a device |
 | `onTokensChanged(cb)` | Subscribe; called immediately with current tokens |
-| `initialize()` | Restore refresh timer after load |
+| `loadProviders()` | Fetch and cache `GET /.well-known/oauth-providers` |
+| `initialize()` | Restore session via silent refresh on load |
 
 ### React exports
 
 | Export | Role |
 |--------|------|
-| `AuthProvider` | Owns `AuthClient`, bootstrap, token subscription |
-| `useAuth()` | `isAuthenticated`, `user`, `signIn`, `signOut`, `client`, `error` |
+| `AuthProvider` | Owns `AuthClient`, session bootstrap, token subscription |
+| `useAuth()` | `isAuthenticated`, `user`, `loadProviders`, `signIn`, `signOut`, `client`, `error` |
+| `useAuthCallback()` | Canonical OAuth callback route hook (Strict Mode safe) |
 | `useRequireAuth()` | Auto `signIn()` when unauthenticated after load |
 | `createAuthFetch()` | Bearer + 401 retry for resource APIs |
+| `getOrCreateAuthClient()` | Stable client instance across React remounts |
 
 ### Advanced
 
