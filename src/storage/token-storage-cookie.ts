@@ -13,7 +13,7 @@ import {
  *
  * - Access token + ID token: JavaScript memory only (short-lived, XSS window minimized)
  * - Refresh token: HttpOnly cookie on **auth issuer** origin (set by server; not readable from JS)
- * - Session flag in sessionStorage: remembers that cookie session exists after reload
+ * - Session flag in localStorage: shared across tabs on the portal origin
  */
 export class CookieTokenStorage implements ITokenStorage {
 	private memory: TokenSet | null = null;

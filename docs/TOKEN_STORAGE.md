@@ -21,8 +21,8 @@ and **omits** `refresh_token` from the JSON body. The browser sends the cookie a
 ### Boot after page refresh
 
 1. Memory has no access token.
-2. `sessionStorage` flag `uids:refresh_session` indicates a cookie session may exist.
-3. `initialize()` → `POST /refresh` with cookie only → new access token in memory.
+2. `localStorage` flag `uids:refresh_session` (shared across portal tabs) indicates a cookie session may exist.
+3. `initialize()` → ask other tabs for tokens via `BroadcastChannel`, else `POST /refresh` with cookie only → new access token in memory.
 
 ## Body delivery (`tokenDelivery: "body"`)
 
@@ -33,6 +33,15 @@ Used when:
 - Local dev across **different ports** if cookies are not sent cross-site (see below)
 
 Stores **access + refresh** in `sessionStorage` / `localStorage` per `tokenStorage`. Same HTTP contract as Flutter (`refresh_token` in JSON).
+
+## Multi-tab (new tab + refresh)
+
+**New tab (Ctrl+click):** access token is only in the first tab’s memory. On load, the SDK:
+
+1. Asks other tabs for tokens (`session-request` on `BroadcastChannel`) — fast path, no `/refresh`.
+2. If none respond, uses the **localStorage** refresh-session flag and runs silent `POST /refresh` (same as F5).
+
+**Why not `sessionStorage` for the flag?** Each browser tab has its own `sessionStorage`, so a new tab would think you are logged out.
 
 ## Multi-tab refresh (rotation-safe)
 

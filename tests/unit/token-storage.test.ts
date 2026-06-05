@@ -30,6 +30,7 @@ describe("BodyTokenStorage", () => {
 describe("CookieTokenStorage", () => {
 	beforeEach(() => {
 		sessionStorage.clear();
+		localStorage.clear();
 	});
 
 	it("keeps refresh out of memory but marks session flag", () => {

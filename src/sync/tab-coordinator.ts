@@ -4,7 +4,8 @@ const CHANNEL_NAME = "uids-auth-react";
 
 export type TabMessage =
 	| { type: "tokens-updated"; tokens: TokenSet; clientId: string }
-	| { type: "session-cleared"; clientId: string };
+	| { type: "session-cleared"; clientId: string }
+	| { type: "session-request"; clientId: string };
 
 /**
  * Coordinates refresh across browser tabs to avoid refresh-token rotation races.
@@ -42,6 +43,42 @@ export class TabCoordinator {
 
 	broadcast(message: TabMessage): void {
 		this.channel?.postMessage(message);
+	}
+
+	/**
+	 * Asks other tabs for the current access token (avoids refresh when opening a new tab).
+	 */
+	requestTokensFromOtherTabs(timeoutMs = 200): Promise<TokenSet | null> {
+		if (!this.channel) {
+			return Promise.resolve(null);
+		}
+
+		return new Promise((resolve) => {
+			const onMessage = (event: MessageEvent<TabMessage>) => {
+				const data = event.data;
+				if (
+					data?.clientId === this.clientId &&
+					data.type === "tokens-updated" &&
+					data.tokens.accessToken
+				) {
+					cleanup();
+					resolve(data.tokens);
+				}
+			};
+
+			const cleanup = (): void => {
+				clearTimeout(timer);
+				this.channel?.removeEventListener("message", onMessage);
+			};
+
+			const timer = setTimeout(() => {
+				cleanup();
+				resolve(null);
+			}, timeoutMs);
+
+			this.channel?.addEventListener("message", onMessage);
+			this.broadcast({ type: "session-request", clientId: this.clientId });
+		});
 	}
 
 	/**

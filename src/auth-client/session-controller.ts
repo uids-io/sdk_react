@@ -130,6 +130,20 @@ export function createSessionController(
 	}
 
 	tabCoordinator.subscribe((msg) => {
+		if (msg.type === "session-request") {
+			const tokens = tokenStorage.get();
+
+			if (tokens?.accessToken) {
+				tabCoordinator.broadcast({
+					type: "tokens-updated",
+					tokens,
+					clientId: config.clientId,
+				});
+			}
+
+			return;
+		}
+
 		if (msg.type === "tokens-updated") {
 			applyTokens(msg.tokens, false);
 			return;
@@ -159,6 +173,13 @@ export function createSessionController(
 				scheduleRefresh(tokens);
 				return;
 			}
+
+			const fromOtherTab = await tabCoordinator.requestTokensFromOtherTabs();
+			if (fromOtherTab) {
+				applyTokens(fromOtherTab, false);
+				return;
+			}
+
 			if (tokenStorage.canRefresh()) {
 				try {
 					await refresh();
