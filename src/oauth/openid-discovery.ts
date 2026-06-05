@@ -1,4 +1,7 @@
-import { DEFAULT_SCOPE } from "../http/constants.js";
+import { normalizeIssuer } from "../http/auth-api.js";
+import { coalescedFetch } from "../http/coalesced-fetch.js";
+import { DEFAULT_SCOPE, OPENID_CONFIGURATION_PATH } from "../http/constants.js";
+import { createCoalescedQuery } from "../query/coalesced-query.js";
 import type { AuthReactConfig } from "../types.js";
 
 /** OIDC discovery document (`GET …/.well-known/openid-configuration`). */
@@ -19,29 +22,47 @@ function assertDiscovery(data: unknown): OpenIdConfiguration {
 	if (!data || typeof data !== "object") {
 		throw new Error("OpenID configuration response is not an object");
 	}
+
 	const doc = data as Record<string, unknown>;
 	for (const key of ["issuer", "authorization_endpoint", "token_endpoint"]) {
 		if (typeof doc[key] !== "string" || !doc[key]) {
 			throw new Error(`OpenID configuration missing or invalid "${key}"`);
 		}
 	}
+
 	return data as OpenIdConfiguration;
+}
+
+const openIdConfigurationQuery = createCoalescedQuery<
+	string,
+	OpenIdConfiguration
+>({
+	key: (url) => url,
+	ttlMs: () => undefined, // cache forever (until clear)
+	fetcher: async (url) => assertDiscovery(await coalescedFetch<unknown>(url)),
+});
+
+/**
+ * Builds the OIDC discovery URL from the auth issuer base URL.
+ * `baseUrl` must already include any mount path (e.g. `https://api.example.com/auth`).
+ */
+export function openIdDiscoveryUrl(baseUrl: string): string {
+	return `${normalizeIssuer(baseUrl)}${OPENID_CONFIGURATION_PATH}`;
 }
 
 /**
  * Fetches the OIDC discovery document from the auth server public path.
- * @param discoveryUrl - e.g. `https://auth.example.com/auth/.well-known/openid-configuration`
+ * @param discoveryUrl - Full URL, or use {@link openIdDiscoveryUrl} with a base URL
  */
 export async function fetchOpenIdConfiguration(
 	discoveryUrl: string,
 ): Promise<OpenIdConfiguration> {
-	const response = await fetch(discoveryUrl);
-	if (!response.ok) {
-		throw new Error(
-			`Failed to load OpenID configuration (${response.status})`,
-		);
-	}
-	return assertDiscovery(await response.json());
+	return openIdConfigurationQuery.query(discoveryUrl);
+}
+
+/** Clears in-memory discovery cache (tests). */
+export function clearOpenIdDiscoveryCache(): void {
+	openIdConfigurationQuery.clear();
 }
 
 /** Builds default OAuth scope from discovery `scopes_supported`. */
@@ -69,7 +90,7 @@ export interface AuthReactConfigPortalOptions {
 
 /**
  * Merges OIDC discovery with portal-specific OAuth client settings.
- * Uses `discovery.issuer` as {@link AuthReactConfig.issuer} (e.g. `http://host/auth`).
+ * Uses `discovery.issuer` as {@link AuthReactConfig.issuer}.
  */
 export function buildAuthReactConfigFromDiscovery(
 	discovery: OpenIdConfiguration,
@@ -103,4 +124,15 @@ export async function resolveAuthConfigFromDiscovery(
 ): Promise<AuthReactConfig> {
 	const discovery = await fetchOpenIdConfiguration(discoveryUrl);
 	return buildAuthReactConfigFromDiscovery(discovery, portal);
+}
+
+/**
+ * Resolves {@link AuthReactConfig} from issuer base URL + portal client settings.
+ * Fetches `{baseUrl}/.well-known/openid-configuration`.
+ */
+export async function resolveAuthConfigFromBaseUrl(
+	baseUrl: string,
+	portal: AuthReactConfigPortalOptions,
+): Promise<AuthReactConfig> {
+	return resolveAuthConfigFromDiscovery(openIdDiscoveryUrl(baseUrl), portal);
 }

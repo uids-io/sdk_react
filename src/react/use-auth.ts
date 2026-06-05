@@ -6,7 +6,9 @@ import { AuthContext, type AuthContextValue } from "./auth-context.js";
  *
  * @example
  * ```tsx
- * const { enabledProviders, signIn, isLoading } = useAuth();
+ * const { enabledProviders, signIn, loadProviders, isLoadingProviders } = useAuth();
+ *
+ * useEffect(() => { void loadProviders(); }, [loadProviders]);
  *
  * if (enabledProviders.includes("google")) {
  *   return <button onClick={() => signIn({ provider: "google" })}>Google</button>;

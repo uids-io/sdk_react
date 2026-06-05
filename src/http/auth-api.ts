@@ -10,10 +10,21 @@ import {
 	TOKEN_DELIVERY_COOKIE,
 	TOKEN_DELIVERY_HEADER,
 } from "./constants.js";
+import { csrfHeaders } from "./csrf.js";
 import { parseAuthResponseError } from "./parse-errors.js";
 
 export function normalizeIssuer(issuer: string): string {
 	return issuer.replace(/\/+$/, "");
+}
+
+/**
+ * Resolves a path under the OAuth issuer base URL.
+ * Use this instead of `new URL("/path", issuer)` — an absolute path replaces the
+ * issuer's pathname (e.g. `/auth` + `/authorize` would incorrectly become `/authorize`).
+ */
+export function issuerUrl(issuer: string, path: string): string {
+	const base = normalizeIssuer(issuer);
+	return `${base}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 export class AuthApi {
@@ -27,7 +38,7 @@ export class AuthApi {
 	}
 
 	private url(path: string): string {
-		return `${this.baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
+		return issuerUrl(this.baseUrl, path);
 	}
 
 	private deliveryHeaders(): HeadersInit {
@@ -50,6 +61,20 @@ export class AuthApi {
 		}
 		for (const [key, value] of Object.entries(this.deliveryHeaders())) {
 			headers.set(key, value);
+		}
+
+		const method = (init.method ?? "GET").toUpperCase();
+		const usesCredentials =
+			this.tokenDelivery === "cookie" || init.useCredentials === true;
+		if (
+			usesCredentials &&
+			["POST", "PUT", "PATCH", "DELETE"].includes(method)
+		) {
+			for (const [key, value] of Object.entries(csrfHeaders())) {
+				if (!headers.has(key)) {
+					headers.set(key, value);
+				}
+			}
 		}
 
 		const { deviceId: _deviceId, useCredentials: _uc, ...fetchInit } = init;

@@ -26,6 +26,7 @@ export class TabCoordinator {
 				if (data?.clientId !== this.clientId) {
 					return;
 				}
+
 				for (const cb of this.listeners) {
 					cb(data);
 				}
@@ -35,6 +36,7 @@ export class TabCoordinator {
 
 	subscribe(handler: (msg: TabMessage) => void): () => void {
 		this.listeners.add(handler);
+
 		return () => this.listeners.delete(handler);
 	}
 

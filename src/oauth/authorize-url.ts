@@ -1,4 +1,4 @@
-import { normalizeIssuer } from "../http/auth-api.js";
+import { issuerUrl } from "../http/auth-api.js";
 import { DEFAULT_SCOPE } from "../http/constants.js";
 import type { PkcePair } from "../pkce.js";
 import type { AuthorizeOptions, AuthReactConfig } from "../types.js";
@@ -13,7 +13,7 @@ export interface BuildAuthorizeUrlParams {
 
 export function buildAuthorizeUrl(params: BuildAuthorizeUrlParams): string {
 	const { config, pkce, deviceId, state, options } = params;
-	const url = new URL("/authorize", normalizeIssuer(config.issuer));
+	const url = new URL(issuerUrl(config.issuer, "/authorize"));
 	url.searchParams.set("response_type", "code");
 	url.searchParams.set("client_id", config.clientId);
 	url.searchParams.set("redirect_uri", config.redirectUri);

@@ -16,7 +16,14 @@ export {
 	type CreateAuthFetchDefaults,
 	createAuthFetch,
 } from "./api/create-auth-fetch.js";
-export { type AuthClient, createAuthClient } from "./auth-client.js";
+export {
+	type AuthClient,
+	createAuthClient,
+} from "./auth-client/index.js";
+export {
+	clearAuthClientRegistry,
+	getOrCreateAuthClient,
+} from "./client-registry.js";
 export { resolveTokenDelivery } from "./config/resolve-token-delivery.js";
 export {
 	AuthSdkError,
@@ -29,18 +36,28 @@ export {
 export {
 	DEFAULT_SCOPE,
 	DEVICE_ID_HEADER,
+	OPENID_CONFIGURATION_PATH,
 	TOKEN_DELIVERY_COOKIE,
 	TOKEN_DELIVERY_HEADER,
 } from "./http/constants.js";
 export { buildAuthorizeUrl } from "./oauth/authorize-url.js";
 export {
+	type AuthReactConfigPortalOptions,
 	buildAuthReactConfigFromDiscovery,
+	clearOpenIdDiscoveryCache,
 	fetchOpenIdConfiguration,
+	type OpenIdConfiguration,
+	openIdDiscoveryUrl,
+	resolveAuthConfigFromBaseUrl,
 	resolveAuthConfigFromDiscovery,
 	scopeFromDiscovery,
-	type AuthReactConfigPortalOptions,
-	type OpenIdConfiguration,
 } from "./oauth/openid-discovery.js";
+export {
+	clearOAuthCallbackSnapshot,
+	clearOAuthRedirectFromUrl,
+	type OAuthRedirectParams,
+	parseOAuthRedirect,
+} from "./oauth/parse-redirect.js";
 export {
 	clearAuthProvidersCache,
 	fetchAuthProviders,
@@ -50,6 +67,11 @@ export {
 export { generateCodeVerifier, generatePkcePair } from "./pkce.js";
 export { AuthProvider, type AuthProviderProps } from "./react/auth-provider.js";
 export { useAuth } from "./react/use-auth.js";
+export {
+	type UseAuthCallbackOptions,
+	type UseAuthCallbackResult,
+	useAuthCallback,
+} from "./react/use-auth-callback.js";
 export { useRequireAuth } from "./react/use-require-auth.js";
 export type {
 	AuthorizeOptions,

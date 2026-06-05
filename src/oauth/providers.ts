@@ -1,4 +1,6 @@
 import { normalizeIssuer } from "../http/auth-api.js";
+import { coalescedFetch } from "../http/coalesced-fetch.js";
+import { createCoalescedQuery } from "../query/coalesced-query.js";
 import type {
 	AuthProvidersResponse,
 	AuthReactConfig,
@@ -12,6 +14,23 @@ let cached: {
 	expiresAt: number;
 	data: AuthProvidersResponse;
 } | null = null;
+
+const providersQuery = createCoalescedQuery<
+	AuthReactConfig,
+	AuthProvidersResponse
+>({
+	key: (config) => normalizeIssuer(config.issuer),
+	ttlMs: (config) => config.providersCacheTtlMs ?? DEFAULT_CACHE_TTL_MS,
+	fetcher: async (config) => {
+		const base = normalizeIssuer(config.issuer);
+		const url = `${base}/.well-known/oauth-providers`;
+		const data = await coalescedFetch<AuthProvidersResponse>(url);
+		if (!data || typeof data !== "object") {
+			throw new Error("Invalid auth providers response");
+		}
+		return data;
+	},
+});
 
 function cacheKey(config: AuthReactConfig): string {
 	return normalizeIssuer(config.issuer);
@@ -32,20 +51,15 @@ export async function fetchAuthProviders(
 		return cached.data;
 	}
 
-	const url = `${key}/.well-known/oauth-providers`;
-	const response = await fetch(url);
-	if (!response.ok) {
-		throw new Error(`Failed to load auth providers (${response.status})`);
-	}
-
-	const data = (await response.json()) as AuthProvidersResponse;
-	cached = { key, expiresAt: now + ttl, data };
+	const data = await providersQuery.query(config);
+	cached = { key, expiresAt: Date.now() + ttl, data };
 	return data;
 }
 
 /** Clears in-memory provider cache (tests). */
 export function clearAuthProvidersCache(): void {
 	cached = null;
+	providersQuery.clear();
 }
 
 export function isProviderEnabled(
