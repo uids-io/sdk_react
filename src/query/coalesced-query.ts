@@ -71,7 +71,7 @@ export function createCoalescedQuery<TArg, TResult>(
 						expiresAt: ttl === undefined ? Number.POSITIVE_INFINITY : now + ttl,
 					});
 				}
-        
+
 				return data;
 			})
 			.finally(() => {

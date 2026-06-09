@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createAuthClient } from "../../src/auth-client/create-client.js";
 import {
 	clearOpenIdDiscoveryCache,
