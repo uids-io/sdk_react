@@ -1,6 +1,10 @@
+import {
+	createAuthFetch,
+	useAuth,
+	useRequireAuth,
+} from "@advcomm/uids-io-auth-react";
 import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { createAuthFetch, useAuth, useRequireAuth } from "@advcomm/uids-io-auth-react";
 import { apiBaseUrl } from "../auth/config.js";
 
 export function DashboardPage() {
@@ -57,7 +61,9 @@ export function DashboardPage() {
 				</button>
 			</p>
 			{apiResult && (
-				<pre style={{ background: "#f4f4f5", padding: "1rem" }}>{apiResult}</pre>
+				<pre style={{ background: "#f4f4f5", padding: "1rem" }}>
+					{apiResult}
+				</pre>
 			)}
 		</main>
 	);

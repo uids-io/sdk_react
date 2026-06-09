@@ -1,5 +1,5 @@
-import { useNavigate } from "react-router-dom";
 import { useAuthCallback } from "@advcomm/uids-io-auth-react";
+import { useNavigate } from "react-router-dom";
 
 export function CallbackPage() {
 	const navigate = useNavigate();

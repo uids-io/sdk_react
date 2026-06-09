@@ -1,6 +1,6 @@
+import { useAuth } from "@advcomm/uids-io-auth-react";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "@advcomm/uids-io-auth-react";
 
 export function HomePage() {
 	const {
@@ -37,7 +37,10 @@ export function HomePage() {
 			{!isLoading && !isLoadingProviders && !isAuthenticated && (
 				<div style={{ display: "grid", gap: "0.5rem", maxWidth: 280 }}>
 					{enabledProviders.includes("google") && (
-						<button type="button" onClick={() => void signIn({ provider: "google" })}>
+						<button
+							type="button"
+							onClick={() => void signIn({ provider: "google" })}
+						>
 							Continue with Google
 						</button>
 					)}
@@ -50,7 +53,10 @@ export function HomePage() {
 						</button>
 					)}
 					{enabledProviders.includes("email") && (
-						<button type="button" onClick={() => void signIn({ provider: "email" })}>
+						<button
+							type="button"
+							onClick={() => void signIn({ provider: "email" })}
+						>
 							Sign in with email
 						</button>
 					)}
