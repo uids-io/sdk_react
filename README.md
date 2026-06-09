@@ -413,12 +413,17 @@ Full JSDoc (parameters, throws, examples) is on the TypeScript types — open `s
 ## Package development
 
 ```bash
-npm install
+npm install      # installs Husky git hooks (prepare)
 npm run build
 npm test
 npm run typecheck
-npm run check    # biome
+npm run check    # biome (format + lint + organize imports)
+npm run validate # check:ci + typecheck + test + build (same as pre-push hook)
 ```
+
+**Git hooks (Husky):** `pre-commit` runs Biome on staged files; `pre-push` runs `npm run validate`. Skip with `git commit --no-verify` / `git push --no-verify`, or `HUSKY=0` (CI release job already sets this).
+
+Releases on **`main`** use **semantic-release** — see [RELEASING.md](RELEASING.md). Use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, etc.) so version bumps and npm publish happen automatically.
 
 ---
 
