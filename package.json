@@ -81,12 +81,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/advcomm/uids-auth-react.git"
+    "url": "git+https://github.com/uids-io/sdk_react.git"
   },
   "bugs": {
-    "url": "https://github.com/advcomm/uids-auth-react/issues"
+    "url": "https://github.com/uids-io/sdk_react.git/issues"
   },
-  "homepage": "https://github.com/advcomm/uids-auth-react#readme",
+  "homepage": "https://github.com/uids-io/sdk_react.git#readme",
   "publishConfig": {
     "access": "public"
   }
