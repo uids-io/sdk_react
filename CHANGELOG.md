@@ -1,3 +1,12 @@
+## [1.0.1](https://github.com/uids-io/sdk_react/compare/v1.0.0...v1.0.1) (2026-06-09)
+
+
+### Bug Fixes
+
+* lint and format in example ([93cd161](https://github.com/uids-io/sdk_react/commit/93cd16137ab62f1bf4547ff5f7fc0cbb33f3c1ae))
+* resolved merge conflicts ([afabe6f](https://github.com/uids-io/sdk_react/commit/afabe6fead1e6564da9ae3a84d3e253f6c5689dc))
+* updated the package name to @advcomm/uids-io-auth-react ([449eca6](https://github.com/uids-io/sdk_react/commit/449eca6794b128f5fa0120cdff3a624c6ec508aa))
+
 # 1.0.0 (2026-06-09)
 
 
