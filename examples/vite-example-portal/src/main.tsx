@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { AuthProvider } from "@uids-io/auth-react";
+import { AuthProvider } from "@advcomm/uids-io-auth-react";
 import { authConfig } from "./auth/config.js";
 import { App } from "./App.js";
 

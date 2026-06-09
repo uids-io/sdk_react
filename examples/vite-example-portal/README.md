@@ -1,6 +1,6 @@
 # Merchant portal example (Vite)
 
-Minimal Vite + React Router app using `@uids-io/auth-react` with the **merchant** OAuth client.
+Minimal Vite + React Router app using `@advcomm/uids-io-auth-react` with the **merchant** OAuth client.
 
 ## Prerequisites
 

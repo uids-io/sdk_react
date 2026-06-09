@@ -1,5 +1,5 @@
 {
-  "name": "@uids-io/auth-react",
+  "name": "@advcomm/uids-io-auth-react",
   "version": "0.1.0",
   "description": "Browser/React OAuth client for @advcomm/uids-io-auth (PKCE, devices, refresh)",
   "type": "module",
@@ -23,8 +23,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "npm:versions": "npm view @uids-io/auth-react versions --json",
-    "npm:latest": "npm view @uids-io/auth-react version",
+    "npm:versions": "npm view @advcomm/uids-io-auth-react versions --json",
+    "npm:latest": "npm view @advcomm/uids-io-auth-react version",
     "release": "semantic-release",
     "release:dry-run": "semantic-release --dry-run",
     "release:patch": "npm version patch",

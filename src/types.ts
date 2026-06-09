@@ -1,5 +1,5 @@
 /**
- * Shared configuration and data types for `@uids-io/auth-react`.
+ * Shared configuration and data types for `@advcomm/uids-io-auth-react`.
  *
  * @packageDocumentation
  */

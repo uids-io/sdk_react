@@ -1,4 +1,4 @@
-# Releasing `@uids-io/auth-react`
+# Releasing `@advcomm/uids-io-auth-react`
 
 ## Automated releases (semantic-release)
 
@@ -46,7 +46,7 @@ You can enforce this later (e.g. PR titles, CI, or hooks); it is **not** require
 
 ### npm setup (one-time)
 
-1. Create the **`@uids-io/auth-react`** package on [npmjs.com](https://www.npmjs.com/) (or ensure your org allows publishing).
+1. Create the **`@advcomm/uids-io-auth-react`** package on [npmjs.com](https://www.npmjs.com/) (or ensure your org allows publishing).
 2. Add GitHub repo secret **`NPM_TOKEN`** with publish access, **or** configure [trusted publishing](https://docs.npmjs.com/trusted-publishers) for this GitHub repo.
 3. On first merge to `main` after this workflow lands, the release job publishes when conventional commits warrant a bump.
 

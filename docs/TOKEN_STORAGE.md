@@ -1,6 +1,6 @@
 # Token storage & multi-tab security
 
-This document explains **critical** client-side decisions in `@uids-io/auth-react`.
+This document explains **critical** client-side decisions in `@advcomm/uids-io-auth-react`.
 
 ## Split storage (web default: `tokenDelivery: "auto"` → cookie)
 

@@ -1,4 +1,4 @@
-import type { AuthReactConfig } from "@uids-io/auth-react";
+import type { AuthReactConfig } from "@advcomm/uids-io-auth-react";
 
 function requiredEnv(name: keyof ImportMetaEnv): string {
 	const value = import.meta.env[name];

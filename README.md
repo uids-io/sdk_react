@@ -1,4 +1,4 @@
-# @uids-io/auth-react
+# @advcomm/uids-io-auth-react
 
 Browser/React OAuth client for [`@advcomm/uids-io-auth`](https://github.com/advcomm/uids-io-auth). Implements the [client SDK contract](../auth/docs/sdk-contract.md): PKCE, device binding, refresh rotation, and SPA logout.
 
@@ -38,7 +38,7 @@ Each app build has **one** `clientId` + **one** `redirectUri`. All apps share th
 ## Install
 
 ```bash
-npm install @uids-io/auth-react
+npm install @advcomm/uids-io-auth-react
 ```
 
 **Peer dependency:** React 18 or 19.
@@ -101,7 +101,7 @@ VITE_API_URL=https://api.example.com
 Keep `config` referentially stable (e.g. `useMemo` or module-level constant) so `AuthProvider` does not recreate the client every render.
 
 ```ts
-import type { AuthReactConfig } from "@uids-io/auth-react";
+import type { AuthReactConfig } from "@advcomm/uids-io-auth-react";
 
 export const authConfig: AuthReactConfig = {
   issuer: import.meta.env.VITE_AUTH_ISSUER,
@@ -126,7 +126,7 @@ For seeded local-dev client IDs, ports, and the included Vite example, see [`exa
 ### 1. Wrap the app
 
 ```tsx
-import { AuthProvider } from "@uids-io/auth-react";
+import { AuthProvider } from "@advcomm/uids-io-auth-react";
 import { authConfig } from "./auth/config";
 
 export function AppRoot({ children }: { children: React.ReactNode }) {
@@ -152,7 +152,7 @@ Use `useAuthCallback` — do not hand-roll `useEffect` + `handleCallback` (unsaf
 
 ```tsx
 import { useNavigate } from "react-router-dom";
-import { useAuthCallback } from "@uids-io/auth-react";
+import { useAuthCallback } from "@advcomm/uids-io-auth-react";
 
 export function AuthCallbackPage() {
   const navigate = useNavigate();
@@ -195,7 +195,7 @@ Login UI lives on the **auth server** — the SDK does not embed provider secret
 ### 5. Protect routes
 
 ```tsx
-import { useRequireAuth } from "@uids-io/auth-react";
+import { useRequireAuth } from "@advcomm/uids-io-auth-react";
 
 export function DashboardPage() {
   useRequireAuth(); // redirects to signIn when not authenticated
@@ -208,7 +208,7 @@ Or check `isAuthenticated` / `isLoading` manually for custom UX.
 ### 6. Call your API
 
 ```ts
-import { createAuthFetch, useAuth } from "@uids-io/auth-react";
+import { createAuthFetch, useAuth } from "@advcomm/uids-io-auth-react";
 
 const { client } = useAuth();
 
@@ -236,7 +236,7 @@ Your API must use `requireAuth` with the same `issuer` and `audience` (`API_AUDI
 Use `createAuthClient` without React when needed:
 
 ```ts
-import { createAuthClient } from "@uids-io/auth-react";
+import { createAuthClient } from "@advcomm/uids-io-auth-react";
 
 const client = createAuthClient(authConfig);
 await client.registerDevice();
@@ -358,7 +358,7 @@ Full detail: [docs/TOKEN_STORAGE.md](./docs/TOKEN_STORAGE.md).
 | `AuthSdkError` | Other failures |
 
 ```ts
-import { isOAuthError, isTokenReuseError } from "@uids-io/auth-react";
+import { isOAuthError, isTokenReuseError } from "@advcomm/uids-io-auth-react";
 
 try {
   await client.refresh();
@@ -433,7 +433,7 @@ Releases on **`main`** use **semantic-release** — see [RELEASING.md](RELEASING
 |-------|--------|
 | Phase 1 — Core client + React hooks | Shipped in this repo |
 | Phase 2 — Multi-tab refresh leader, app presets | Planned |
-| Phase 3 — `@uids-io/auth-react/next` | Planned |
+| Phase 3 — `@advcomm/uids-io-auth-react/next` | Planned |
 
 Details: [REACT_SDK_PLAN.md](../auth/docs/REACT_SDK_PLAN.md)
 

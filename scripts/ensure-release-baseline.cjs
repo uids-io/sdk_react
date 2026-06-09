@@ -20,7 +20,7 @@ const { execFileSync, execSync } = require('child_process');
 const { join } = require('path');
 const semver = require('semver');
 
-const PKG_NAME = '@uids-io/auth-react';
+const PKG_NAME = '@advcomm/uids-io-auth-react';
 const pkgPath = join(__dirname, '..', 'package.json');
 const pkgVersion = JSON.parse(readFileSync(pkgPath, 'utf8')).version;
 

@@ -1,6 +1,6 @@
 # OAuth redirect handling — implementation plan
 
-This document is the reference plan for fixing duplicate callback requests (React Strict Mode, remounts, and concurrent `handleCallback` calls) in `@uids-io/auth-react`.
+This document is the reference plan for fixing duplicate callback requests (React Strict Mode, remounts, and concurrent `handleCallback` calls) in `@advcomm/uids-io-auth-react`.
 
 **Status:** Implemented (2026-06-04).
 

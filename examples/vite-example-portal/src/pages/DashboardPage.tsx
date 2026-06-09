@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { createAuthFetch, useAuth, useRequireAuth } from "@uids-io/auth-react";
+import { createAuthFetch, useAuth, useRequireAuth } from "@advcomm/uids-io-auth-react";
 import { apiBaseUrl } from "../auth/config.js";
 
 export function DashboardPage() {

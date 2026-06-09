@@ -1,5 +1,5 @@
 /**
- * @uids-io/auth-react — Browser/React OAuth client for `@advcomm/uids-io-auth`.
+ * @advcomm/uids-io-auth-react — Browser/React OAuth client for `@advcomm/uids-io-auth`.
  *
  * **Main entry points:**
  * - {@link createAuthClient} — PKCE login, tokens, refresh, logout

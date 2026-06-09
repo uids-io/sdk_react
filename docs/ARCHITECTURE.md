@@ -1,4 +1,4 @@
-# @uids-io/auth-react — architecture
+# @advcomm/uids-io-auth-react — architecture
 
 For **token storage, cookies, and multi-tab behavior** read [TOKEN_STORAGE.md](./TOKEN_STORAGE.md) first.
 

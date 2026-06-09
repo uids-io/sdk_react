@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "@uids-io/auth-react";
+import { useAuth } from "@advcomm/uids-io-auth-react";
 
 export function HomePage() {
 	const {
@@ -21,7 +21,7 @@ export function HomePage() {
 		<main style={{ fontFamily: "system-ui", margin: "2rem", maxWidth: 640 }}>
 			<h1>Merchant portal (example)</h1>
 			<p>
-				Demo app for <code>@uids-io/auth-react</code> against{" "}
+				Demo app for <code>@advcomm/uids-io-auth-react</code> against{" "}
 				<code>@advcomm/uids-io-auth</code>.
 			</p>
 
